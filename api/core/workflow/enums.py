@@ -14,3 +14,4 @@ class SystemVariableKey(StrEnum):
     APP_ID = "app_id"
     WORKFLOW_ID = "workflow_id"
     WORKFLOW_RUN_ID = "workflow_run_id"
+    INPUT_TYPE = "input_type"

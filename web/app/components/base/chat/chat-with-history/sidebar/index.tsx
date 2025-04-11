@@ -143,13 +143,7 @@ const Sidebar = ({ isPanel }: Props) => {
             <div className={cn(
               'flex shrink-0 items-center gap-1.5 px-2',
             )}>
-              <div className='system-2xs-medium-uppercase text-text-tertiary'>{t('share.chat.poweredBy')}</div>
-              {appData?.custom_config?.replace_webapp_logo && (
-                <img src={appData?.custom_config?.replace_webapp_logo} alt='logo' className='block h-5 w-auto' />
-              )}
-              {!appData?.custom_config?.replace_webapp_logo && (
-                <LogoSite className='!h-5' />
-              )}
+              <div className='system-2xs-medium-uppercase text-text-tertiary'>天道酬勤</div>
             </div>
           )}
         </div>
