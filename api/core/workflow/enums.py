@@ -15,3 +15,4 @@ class SystemVariableKey(StrEnum):
     WORKFLOW_ID = "workflow_id"
     WORKFLOW_RUN_ID = "workflow_run_id"
     INPUT_TYPE = "input_type"
+    WORKFLOW_EXECUTION_ID = "workflow_run_id"

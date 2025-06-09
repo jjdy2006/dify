@@ -6,13 +6,14 @@ import {
   RiArrowDownSLine,
   RiCloseLine,
   RiErrorWarningFill,
+  RiMoreLine,
 } from '@remixicon/react'
 import produce from 'immer'
-import { useStoreApi } from 'reactflow'
+import { useReactFlow, useStoreApi } from 'reactflow'
 import RemoveButton from '../remove-button'
 import useAvailableVarList from '../../hooks/use-available-var-list'
 import VarReferencePopup from './var-reference-popup'
-import { getNodeInfoById, isConversationVar, isENV, isSystemVar } from './utils'
+import { getNodeInfoById, isConversationVar, isENV, isSystemVar, varTypeToStructType } from './utils'
 import ConstantField from './constant-field'
 import cn from '@/utils/classnames'
 import type { Node, NodeOutPutVar, ValueSelector, Var } from '@/app/components/workflow/types'
@@ -37,6 +38,7 @@ import AddButton from '@/app/components/base/button/add-button'
 import Badge from '@/app/components/base/badge'
 import Tooltip from '@/app/components/base/tooltip'
 import { isExceptionVariable } from '@/app/components/workflow/utils'
+import VarFullPathPanel from './var-full-path-panel'
 import { noop } from 'lodash-es'
 
 const TRIGGER_DEFAULT_WIDTH = 227
@@ -109,6 +111,9 @@ const VarReferencePicker: FC<Props> = ({
     passedInAvailableNodes,
     filterVar,
   })
+
+  const reactflow = useReactFlow()
+
   const startNode = availableNodes.find((node: any) => {
     return node.data.type === BlockEnum.Start
   })
@@ -170,19 +175,22 @@ const VarReferencePicker: FC<Props> = ({
     if (isSystemVar(value as ValueSelector))
       return startNode?.data
 
-    return getNodeInfoById(availableNodes, outputVarNodeId)?.data
+    const node = getNodeInfoById(availableNodes, outputVarNodeId)?.data
+    return {
+      ...node,
+      id: outputVarNodeId,
+    }
   }, [value, hasValue, isConstant, isIterationVar, iterationNode, availableNodes, outputVarNodeId, startNode, isLoopVar, loopNode])
 
-  const varName = useMemo(() => {
-    if (hasValue) {
-      const isSystem = isSystemVar(value as ValueSelector)
-      let varName = ''
-      if (Array.isArray(value))
-        varName = value.length >= 3 ? (value as ValueSelector).slice(-2).join('.') : value[value.length - 1]
+  const isShowAPart = (value as ValueSelector).length > 2
 
-      return `${isSystem ? 'sys.' : ''}${varName}`
-    }
-    return ''
+  const varName = useMemo(() => {
+    if (!hasValue)
+      return ''
+
+    const isSystem = isSystemVar(value as ValueSelector)
+    const varName = Array.isArray(value) ? value[(value as ValueSelector).length - 1] : ''
+    return `${isSystem ? 'sys.' : ''}${varName}`
   }, [hasValue, value])
 
   const varKindTypes = [
@@ -236,6 +244,28 @@ const VarReferencePicker: FC<Props> = ({
       onChange([], varKindType)
   }, [onChange, varKindType])
 
+  const handleVariableJump = useCallback((nodeId: string) => {
+    const currentNodeIndex = availableNodes.findIndex(node => node.id === nodeId)
+    const currentNode = availableNodes[currentNodeIndex]
+
+    const workflowContainer = document.getElementById('workflow-container')
+    const {
+      clientWidth,
+      clientHeight,
+    } = workflowContainer!
+    const {
+      setViewport,
+    } = reactflow
+    const { transform } = store.getState()
+    const zoom = transform[2]
+    const position = currentNode.position
+    setViewport({
+      x: (clientWidth - 400 - currentNode.width! * zoom) / 2 - position.x * zoom,
+      y: (clientHeight - currentNode.height! * zoom) / 2 - position.y * zoom,
+      zoom: transform[2],
+    })
+  }, [availableNodes, reactflow, store])
+
   const type = getCurrentVariableType({
     parentNode: isInIteration ? iterationNode : loopNode,
     valueSelector: value as ValueSelector,
@@ -270,6 +300,22 @@ const VarReferencePicker: FC<Props> = ({
 
   const WrapElem = isSupportConstantValue ? 'div' : PortalToFollowElemTrigger
   const VarPickerWrap = !isSupportConstantValue ? 'div' : PortalToFollowElemTrigger
+
+  const tooltipPopup = useMemo(() => {
+    if (isValidVar && isShowAPart) {
+      return (
+        <VarFullPathPanel
+          nodeName={outputVarNode?.title}
+          path={(value as ValueSelector).slice(1)}
+          varType={varTypeToStructType(type)}
+          nodeType={outputVarNode?.type}
+        />)
+    }
+    if (!isValidVar && hasValue)
+      return t('workflow.errorMsg.invalidVariable')
+
+    return null
+  }, [isValidVar, isShowAPart, hasValue, t, outputVarNode?.title, outputVarNode?.type, value, type])
   return (
     <div className={cn(className, !readonly && 'cursor-pointer')}>
       <PortalToFollowElem
@@ -334,13 +380,18 @@ const VarReferencePicker: FC<Props> = ({
                       className='h-full grow'
                     >
                       <div ref={isSupportConstantValue ? triggerRef : null} className={cn('h-full', isSupportConstantValue && 'flex items-center rounded-lg bg-components-panel-bg py-1 pl-1')}>
-                        <Tooltip popupContent={!isValidVar && hasValue && t('workflow.errorMsg.invalidVariable')}>
+                        <Tooltip noDecoration={isShowAPart} popupContent={tooltipPopup}>
                           <div className={cn('h-full items-center rounded-[5px] px-1.5', hasValue ? 'inline-flex bg-components-badge-white-to-dark' : 'flex')}>
                             {hasValue
                               ? (
                                 <>
                                   {isShowNodeName && !isEnv && !isChatVar && (
-                                    <div className='flex items-center'>
+                                    <div className='flex items-center' onClick={(e) => {
+                                      if (e.metaKey || e.ctrlKey) {
+                                        e.stopPropagation()
+                                        handleVariableJump(outputVarNode?.id)
+                                      }
+                                    }}>
                                       <div className='h-3 px-[1px]'>
                                         {outputVarNode?.type && <VarBlockIcon
                                           className='!text-text-primary'
@@ -351,6 +402,12 @@ const VarReferencePicker: FC<Props> = ({
                                         maxWidth: maxNodeNameWidth,
                                       }}>{outputVarNode?.title}</div>
                                       <Line3 className='mr-0.5'></Line3>
+                                    </div>
+                                  )}
+                                  {isShowAPart && (
+                                    <div className='flex items-center'>
+                                      <RiMoreLine className='h-3 w-3 text-text-secondary' />
+                                      <Line3 className='mr-0.5 text-divider-deep'></Line3>
                                     </div>
                                   )}
                                   <div className='flex items-center text-text-accent'>

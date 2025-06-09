@@ -173,7 +173,7 @@ export const MAX_TOOLS_NUM = maxToolsNum
 
 export const DEFAULT_AGENT_SETTING = {
   enabled: false,
-  max_iteration: 5,
+  max_iteration: 10,
   strategy: AgentStrategy.functionCall,
   tools: [],
 }
@@ -265,7 +265,7 @@ Thought: {{agent_scratchpad}}
   `,
 }
 
-export const VAR_REGEX = /\{\{(#[a-zA-Z0-9_-]{1,50}(\.[a-zA-Z_][a-zA-Z0-9_]{0,29}){1,10}#)\}\}/gi
+export const VAR_REGEX = /\{\{(#[a-zA-Z0-9_-]{1,50}(\.[a-zA-Z_]\w{0,29}){1,10}#)\}\}/gi
 
 export const resetReg = () => VAR_REGEX.lastIndex = 0
 
@@ -285,6 +285,7 @@ export const GITHUB_ACCESS_TOKEN = process.env.NEXT_PUBLIC_GITHUB_ACCESS_TOKEN |
 export const SUPPORT_INSTALL_LOCAL_FILE_EXTENSIONS = '.difypkg,.difybndl'
 export const FULL_DOC_PREVIEW_LENGTH = 50
 
+export const JSON_SCHEMA_MAX_DEPTH = 10
 let loopNodeMaxCount = 100
 
 if (process.env.NEXT_PUBLIC_LOOP_NODE_MAX_COUNT && process.env.NEXT_PUBLIC_LOOP_NODE_MAX_COUNT !== '')
@@ -294,7 +295,7 @@ else if (globalThis.document?.body?.getAttribute('data-public-loop-node-max-coun
 
 export const LOOP_NODE_MAX_COUNT = loopNodeMaxCount
 
-let maxIterationsNum = 5
+let maxIterationsNum = 99
 
 if (process.env.NEXT_PUBLIC_MAX_ITERATIONS_NUM && process.env.NEXT_PUBLIC_MAX_ITERATIONS_NUM !== '')
   maxIterationsNum = Number.parseInt(process.env.NEXT_PUBLIC_MAX_ITERATIONS_NUM)
@@ -302,3 +303,15 @@ else if (globalThis.document?.body?.getAttribute('data-public-max-iterations-num
   maxIterationsNum = Number.parseInt(globalThis.document.body.getAttribute('data-public-max-iterations-num') as string)
 
 export const MAX_ITERATIONS_NUM = maxIterationsNum
+
+export const ENABLE_WEBSITE_JINAREADER = process.env.NEXT_PUBLIC_ENABLE_WEBSITE_JINAREADER !== undefined
+  ? process.env.NEXT_PUBLIC_ENABLE_WEBSITE_JINAREADER === 'true'
+  : globalThis.document?.body?.getAttribute('data-public-enable-website-jinareader') === 'true' || true
+
+export const ENABLE_WEBSITE_FIRECRAWL = process.env.NEXT_PUBLIC_ENABLE_WEBSITE_FIRECRAWL !== undefined
+  ? process.env.NEXT_PUBLIC_ENABLE_WEBSITE_FIRECRAWL === 'true'
+  : globalThis.document?.body?.getAttribute('data-public-enable-website-firecrawl') === 'true' || true
+
+export const ENABLE_WEBSITE_WATERCRAWL = process.env.NEXT_PUBLIC_ENABLE_WEBSITE_WATERCRAWL !== undefined
+  ? process.env.NEXT_PUBLIC_ENABLE_WEBSITE_WATERCRAWL === 'true'
+  : globalThis.document?.body?.getAttribute('data-public-enable-website-watercrawl') === 'true' || true
