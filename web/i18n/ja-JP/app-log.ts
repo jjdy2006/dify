@@ -1,7 +1,8 @@
 const translation = {
   title: 'ログ',
   description: 'ログは、アプリケーションの実行状態を記録します。ユーザーの入力や AI の応答などが含まれます。',
-  dateTimeFormat: 'MM/DD/YYYY hh:mm A',
+  dateTimeFormat: 'YYYY/MM/DD hh:mm:ss A',
+  dateFormat: 'YYYY/MM/DD',
   table: {
     header: {
       updatedTime: '更新時間',
@@ -58,6 +59,7 @@ const translation = {
     period: {
       today: '今日',
       last7days: '過去 7 日間',
+      last30days: '過去 30 日間',
       last4weeks: '過去 4 週間',
       last3months: '過去 3 ヶ月',
       last12months: '過去 12 ヶ月',
@@ -65,6 +67,7 @@ const translation = {
       quarterToDate: '四半期初から今日まで',
       yearToDate: '年初から今日まで',
       allTime: 'すべての期間',
+      custom: 'カスタム',
     },
     annotation: {
       all: 'すべて',
@@ -82,6 +85,7 @@ const translation = {
     workflowTitle: 'ログの詳細',
     fileListLabel: 'ファイルの詳細',
     fileListDetail: '詳細',
+    testWithParams: 'パラメータ付きテスト',
   },
   promptLog: 'プロンプトログ',
   agentLog: 'エージェントログ',
